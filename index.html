@@ -1,0 +1,988 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content=""width=device-width, initial-scale="1.0">
+        <title>Hi! I am Brian</title>title>
+    <style>
+        * {
+            box-sizing:border-box;
+        }
+
+        body {
+            margin:0;
+            padding:0;
+            width:100%;
+            height:100%;
+            background:#0b0b0b;
+        }
+
+        canvas {
+            display:block;
+            width:100vw;
+            height:100vh;
+            cursor:default;
+        }
+        </style>
+        </head>head>
+
+        <body>
+            <canvas id="canvas"></canvas>canvas>
+        
+        <script>
+            /* ========== Canvas:) ========== */
+            const canvas=document.getElementById("canvas");
+            const ctx=canvas.getContext("2d");
+
+            let W=0;
+            let H=0;
+            let DPR=1;
+
+            function resizeCanvas() {
+                W=window.innerWidth;
+                H=window.innerHeight;
+                DPR=window.devicePixelRatio||1;
+                canvas.width=W*DPR;
+                canvas.height=H*DPR;
+                ctx.setTransform(1,0,0,1,0,0);
+                ctx.scale(DPR,DPR);
+            }
+
+            window.addEventListener("resize",resizeCanvas);
+            resizeCanvas();
+
+            /* ========== Content:) ========== */
+            const SITE={
+                name:"Brian Loo",
+                role:"Student / Maker / Developer",
+                location:"Malaysia",
+                intro:"Hi! I am Brian, a passionate student and maker from Malaysia. I love exploring new technologies and creating innovative solutions. Welcome to my personal website!",
+                about:"I am currently a student pursuing my studies in computer science. I have a keen interest in software development, web technologies, and open-source projects. In my free time, I enjoy tinkering with electronics and building small projects.",
+                email:"liveb1038@gmail.com",
+                github:"https://github.com/brianl84",
+                socials:"@brian_loo0804"
+            };
+
+            /* ========== Projects:) ========== */
+            const PROJECTS=[
+                {
+                    number:"01",
+                    title:"blpad - First on Hackclub!",
+                    category:"Hardware",
+                    description:"My first project on Hackclub!",
+                    year:"2026"
+                },
+                {
+                    number:"02",
+                    title:"Tagless - This one!",
+                    category:"Software",
+                    description:"First time coding with no tags! I use canvas.",
+                    year:"2026"
+                }
+            ];
+
+            /* ========== Skills:) ========== */
+            const SKILLS=[
+                ["PHOTOGRAPHY",90],
+                ["HTML",85],
+                ["ESP32",82],
+                ["PHP",80],
+                ["DESIGN",78],
+                ["MYSQL",69],
+                ["QMK",62]
+            ];
+
+            /* ========== NAV:) ========== */
+            const NAV=[
+                "HOME",
+                "ABOUT",
+                "PROJECTS",
+                "SKILLS",
+                "CONTACT"
+            ];
+
+            let currentPage=0;
+            let mouseX=-1000;
+            let mouseY=-1000;
+            let scroll=0;
+            let targetScroll=0;
+            let pageProgress=0;
+            let previousPage=0;
+            let transition=1;
+
+            /* ========== Colours:) ========== */
+            const COLOURS={
+                background:"#0b0b0b",
+                foreground:"#f1eee7",
+                muted:"#85827b",
+                dim:"#33322f",
+                text:"#ffffff",
+                accent:"#ff0000",
+                panel:"#11110f",
+                grid:"#191917",
+                border:"#292925"
+            };
+
+            /* ========== Helpers:) ========== */
+            function clamp(value,min,max) {
+                return Math.max(min,Math.min(max,value));
+            }
+
+            function lerp(a,b,t) {
+                return a+(b-a)*t;
+            }
+
+            function ease(t) {
+                return t*t*(3-2*t);
+            }
+
+            function roundedRect(x,y,w,h,r) {
+                ctx.beginPath();
+                ctx.roundRect(x,y,w,h,r);
+                ctx.fill();
+            }
+
+            function strokeRoundedRect(x,y,w,h,r) {
+                ctx.beginPath();
+                ctx.roundRect(x,y,w,h,r);
+                ctx.stroke();
+            }
+
+            function text(value,x,y,size,colour=COLOURS.foreground,weight="400",align="left",family="Arial") {
+                ctx.font=weight+" "+size+"px "+family;
+                ctx.fillStyle=colour;
+                ctx.textAlign=align;
+                ctx.textBaseline="alphabetic";
+                ctx.fillText(value,x,y);
+            }
+
+            function line(x1,y1,x2,y2,colour=COLOURS.border,width=1) {
+                ctx.beginPath();
+                ctx.moveTo(x1,y1);
+                ctx.lineTo(x2,y2);
+                ctx.strokeStyle=colour;
+                ctx.lineWidth=width;
+                ctx.stroke();
+            }
+
+            /* ========== DrawBackground:) ========== */
+            function drawBackground(time) {
+                /* Base */
+                ctx.fillStyle=COLOURS.background;
+                ctx.fillRect(0,0,W,H);
+
+                /* Grid */
+                const spacing=48;
+                const offset=(time*0.008)%spacing;
+
+                ctx.strokeStyle=COLOURS.grid;
+                ctx.lineWidth=1;
+
+                for(let x=-spacing+offset;x<W+spacing;x+=spacing) {
+                    ctx.beginPath();
+                    ctx.moveTo(x,0);
+                    ctx.lineTo(x,H);
+                    ctx.stroke();
+                }
+
+                for(let y=-spacing+offset;y<H+spacing;y+=spacing) {
+                    ctx.beginPath();
+                    ctx.moveTo(0,y);
+                    ctx.lineTo(W,y);
+                    ctx.stroke();
+                }
+
+                /* Glow */
+                const gradient=ctx.createRadialGradient(
+                    W*0.8,
+                    H*0.2,
+                    0,
+                    W*0.8,
+                    H*0.2,
+                    Math.max(W,H)*0.6
+            );
+
+            gradient.addColorStop(0,"rgba(255,0,0,0.055)");
+            gradient.addColorStop(1,"rgba(255,0,0,0)");
+
+            ctx.fillStyle=gradient;
+            ctx.fillRect(0,0,W,H);
+            }
+
+            /* ========== DrawHeader:) ========== */
+            function drawHeader() {
+                text(
+                    SITE.name,
+                    50,
+                    43,
+                    20,
+                    COLOURS.foreground,
+                    "700"
+            );
+
+            text(
+                "Copyright Brian 2026",
+                W-38,
+                43,
+                11,
+                COLOURS.muted,
+                "500",
+                "right"
+            );
+
+            line(
+                38,
+                62,
+                W-38,
+                62
+            );
+            }
+
+            /* ========== DrawNavigation:) ========== */
+            function drawNavigation() {
+                if(W<760) return;
+
+                const x=40;
+                const top=112;
+
+                NAV.forEach((item,index)=>{
+                    const y=top+index*44;
+
+                    const active=index===currentPage;
+
+                    const hover=
+                    mouseX>=x&&
+                    mouseX<=x+150&&
+                    mouseY>=y-20&&
+                    mouseY<=y+12;
+
+                    if(active||hover) {
+                        ctx.fillStyle=
+                        active
+                        ?COLOURS.accent
+                        :COLOURS.dim;
+
+                        roundedRect(
+                            x-10,
+                            y-23,
+                            150,
+                            34,
+                            4
+                    );
+                    }
+
+                    text(
+                        String(index+1).padStart(2,"0"),
+                        x,
+                        y,
+                        10,
+                        active
+                        ?COLOURS.background
+                        :COLOURS.muted,
+                        "700"
+                );
+
+                text(
+                    item,
+                    x+32,
+                    y,
+                    11,
+                    active
+                    ?COLOURS.background
+                    :COLOURS.foreground,
+                    active
+                    ?"700"
+                    :"500"
+                );
+                });
+            }
+
+            /* ========== DrawFooter:) ========== */
+            function drawFooter() {
+                text(
+                    "TAGLESS",
+                    38,
+                    H-28,
+                    9,
+                    COLOURS.muted,
+                    "500"
+            );
+
+            text(
+                String(currentPage+1).padStart(2,"0")+
+                " / "+
+                String(NAV.length).padStart(2,"0"),
+                W-38,
+                H-28,
+                9,
+                COLOURS.muted,
+                "500",
+                "right"
+            );
+            }
+
+            /* ========== DrawHome:) ========== */
+            function drawHome() {
+                const left=W<760?140:220;
+                const top=150;
+
+                text(
+                    "Hi, I'm",
+                    left,
+                    top,
+                    13,
+                    COLOURS.accent,
+                    "700"
+            );
+
+            text(
+                SITE.name,
+                left,
+                top+82,
+                Math.min(86,W*0.11),
+                COLOURS.foreground,
+                "800"
+            );
+
+            text(
+                SITE.role,
+                left,
+                top+118,
+                13,
+                COLOURS.muted,
+                "600"
+            );
+
+            const maxWidth=Math.min(520,W-left-50);
+
+            drawWrappedText(
+                SITE.intro,
+                left,
+                top+175,
+                maxWidth,
+                19,
+                30,
+                COLOURS.foreground
+            );
+
+            /* Deco */
+            text(
+                "01",
+                W-70,
+                H*0.36,
+                130,
+                COLOURS.dim,
+                "800",
+                "right"
+            );
+
+            /* Bottom Card */
+            const cardW=Math.min(600,W-left-40);
+            const cardY=H-150;
+
+            ctx.fillStyle=COLOURS.panel;
+            roundedRect(
+                left,
+                cardY,
+                cardW,
+                74,
+                8
+            );
+
+            ctx.strokeStyle=COLOURS.border;
+            strokeRoundedRect(
+                left,
+                cardY,
+                cardW,
+                74,
+                8
+            );
+
+            text(
+                "CURRENTLY",
+                left+20,
+                cardY+22,
+                11,
+                COLOURS.muted,
+                "700"
+            );
+
+            text(
+                "BUILDING / LEARNING / EXPLORING",
+                left+20,
+                cardY+40,
+                13,
+                COLOURS.foreground,
+                "600"
+            );
+            }
+
+            /* ========== DrawAbout:) ========== */
+            function drawAbout() {
+                const left=W<760?30:220;
+                const top=140;
+
+                text(
+                    "02 / ABOUT",
+                    left,
+                    top,
+                    11,
+                    COLOURS.accent,
+                    "700"
+            );
+
+            text(
+                "A LITTLE",
+                left,
+                top+78,
+                54,
+                COLOURS.foreground,
+                "800"
+            );
+
+            text(
+                "ABOUT ME.",
+                left,
+                top+132,
+                54,
+                COLOURS.foreground,
+                "800"
+            );
+
+            drawWrappedText(
+                SITE.about,
+                left,
+                top+195,
+                Math.min(620,W-left-50),
+                18,
+                30,
+                COLOURS.muted
+            );
+
+            /* info */
+            const infoY=top+320;
+            const items=[
+                ["LOCATION",SITE.location],
+                ["ROLE",SITE.role],
+                ["EMAIL",SITE.email]
+            ];
+
+            items.forEach((item,i)=>{
+                const x=left+i*Math.min(220,(W-left-30)/3);
+
+                text(
+                    item[0],
+                    x,
+                    infoY,
+                    9,
+                    COLOURS.muted,
+                    "700"
+            );
+
+            text(
+                item[1],
+                x,
+                infoY+26,
+                12,
+                COLOURS.foreground,
+                "600"
+            );
+            });
+            }
+
+            /* ========== DrawProjects:) ========== */
+            function drawProjects() {
+                const left=W<760?30:220;
+                const top=120;
+
+                /* Title */
+                text(
+                    "03 / PROJECTS",
+                    left,
+                    top,
+                    11,
+                    COLOURS.accent,
+                    "700"
+            );
+
+            text(
+                "SELECTED WORK",
+                left,
+                top+65,
+                42,
+                COLOURS.foreground,
+                "800"
+            );
+
+            /* Layout */
+            const cardWidth=W<760?W-60:Math.min(330,(W-left-80)/2);
+            const gap=18;
+            const startY=top+100;
+
+            /* Projects */
+            PROJECTS.forEach((project,index)=>{
+                const col=index%2;
+                const row=Math.floor(index/2);
+                const x=left+col*(cardWidth+gap);
+                const y=startY+row*175-scroll;
+
+                drawProjectCard(
+                    project,
+                    x,
+                    y,
+                    cardWidth,
+                    150
+            );
+            });
+        }
+
+        /* ========== DrawProjectCard:) ========== */
+        function drawProjectCard(project,x,y,w,h) {
+            /* Hover */
+            const inside=
+            mouseX>=x&&
+            mouseX<=x+w&&
+            mouseY>=y&&
+            mouseY<=y+h;
+
+            /* Card */
+            ctx.fillStyle=inside?"#181814":COLOURS.panel;
+            roundedRect(x,y,w,h,8);
+
+            /* Border */
+            ctx.strokeStyle=inside?COLOURS.accent:COLOURS.border;
+            ctx.lineWidth=inside?1.5:1;
+            strokeRoundedRect(x,y,w,h,8);
+
+            /* Number */
+            text(
+                project.number,
+                x+18,
+                y+25,
+                10,
+                COLOURS.accent,
+                "700"
+        );
+
+        /* Year */
+        text(
+            project.year,
+            x+w-18,
+            y+25,
+            9,
+            COLOURS.muted,
+            "500",
+            "right"
+        );
+
+        /* Title */
+        text(
+            project.title,
+            x+18,
+            y+60,
+            18,
+            COLOURS.foreground,
+            "700"
+        );
+
+        /* Category */
+        text(
+            project.category,
+            x+18,
+            y+82,
+            9,
+            COLOURS.muted,
+            "700"
+        );
+
+        /* Description */
+        drawWrappedText(
+            project.description,
+            x+18,
+            y+107,
+            w-36,
+            11,
+            17,
+            COLOURS.muted
+        );
+        }
+
+        /* ========== DrawSkills:) ========== */
+        function drawSkills() {
+            const left=W<760?30:220;
+            const top=130;
+
+            /* Title */
+            text(
+                "04 / SKILLS",
+                left,
+                top,
+                11,
+                COLOURS.accent,
+                "700"
+        );
+
+        text(
+            "TOOLS & SKILLS",
+            left,
+            top+65,
+            42,
+            COLOURS.foreground,
+            "800"
+        );
+
+        /* Layout */
+        const startY=top+125;
+        const width=Math.min(650,W-left-60);
+
+        /* Skills */
+        SKILLS.forEach((skill,index)=>{
+            const y=startY+index*48;
+
+            /* Name */
+            text(
+                skill[0],
+                left,
+                y,
+                11,
+                COLOURS.foreground,
+                "600"
+        );
+
+        /* Bar */
+        const barX=left+150;
+        const barW=width-150;
+
+        ctx.fillStyle=COLOURS.dim;
+        roundedRect(
+            barX,
+            y-9,
+            barW,
+            5,
+            3
+        );
+
+        /* Progress */
+        ctx.fillStyle=COLOURS.accent;
+        roundedRect(
+            barX,
+            y-9,
+            barW*(skill[1]/100),
+            5,
+            3
+        );
+
+        /* Percentage */
+        text(
+            skill[1]+"%",
+            barX+barW+15,
+            y,
+            9,
+            COLOURS.muted,
+            "600"
+        );
+        });
+    }
+
+    /* ========== DrawContact:) ========== */
+    function drawContact() {
+        const left=W<760?30:220;
+        const top=150;
+
+        /* Title */
+        text(
+            "05 / CONTACT",
+            left,
+            top,
+            11,
+            COLOURS.accent,
+            "700"
+    );
+
+    text(
+        "LET'S TALK.",
+        left,
+        top+85,
+        Math.min(70,W*0.09),
+        COLOURS.foreground,
+        "800"
+    );
+
+    /* Email */
+    text(
+        "EMAIL",
+        left,
+        top+170,
+        9,
+        COLOURS.muted,
+        "700"
+    );
+
+    text(
+        SITE.email,
+        left,
+        top+202,
+        17,
+        COLOURS.foreground,
+        "600"
+    );
+
+    /* GitHub */
+    text(
+        "GITHUB",
+        left,
+        top+260,
+        9,
+        COLOURS.muted,
+        "700"
+    );
+
+    text(
+        SITE.github,
+        left,
+        top+292,
+        17,
+        COLOURS.foreground,
+        "600"
+    );
+
+    /* Social */
+    text(
+        "SOCIAL",
+        left,
+        top+350,
+        9,
+        COLOURS.muted,
+        "700"
+    );
+
+    text(
+        SITE.socials,
+        left,
+        top+382,
+        17,
+        COLOURS.foreground,
+        "600"
+    );
+
+    /* Footer */
+    text(
+        "THANK YOU FOR VISITING.",
+        W-40,
+        H-90,
+        10,
+        COLOURS.dim,
+        "700",
+        "right"
+    );
+    }
+
+    /* ========== DrawWrappedText:) ========== */
+    function drawWrappedText(value,x,y,maxWidth,fontSize,lineHeight,colour) {
+        ctx.font="400 "+fontSize+"px Arial";
+        ctx.fillStyle=colour;
+        ctx.textAlign="left";
+
+        /* Words */
+        const words=value.split(" ");
+        let lineText="";
+        let currentY=y;
+
+        /* Wrap */
+        for(let i=0;i<words.length;i++) {
+            const test=lineText+words[i]+" ";
+            const width=ctx.measureText(test).width;
+
+            if(width>maxWidth&&lineText!=="") {
+                ctx.fillText(lineText,x,currentY);
+                lineText=words[i]+" ";
+                currentY+=lineHeight;
+            } else {
+                lineText=test;
+            }
+        }
+
+        /* Last line */
+        if(lineText) {
+            ctx.fillText(lineText,x,currentY);
+        }
+    }
+
+    /* ========== DrawPage:) ========== */
+    function drawPage(time) {
+        if(currentPage===0) {
+            drawHome();
+        } else if(currentPage===1) {
+            drawAbout();
+        } else if(currentPage===2) {
+            drawProjects();
+        } else if(currentPage===3) {
+            drawSkills();
+        } else if(currentPage===4) {
+            drawContact();
+        }
+    }
+
+    /* ========== Mouse:) ========== */
+    canvas.addEventListener("mousemove",event=>{
+        mouseX=event.clientX;
+        mouseY=event.clientY;
+    });
+
+    canvas.addEventListener("mouseleave",()=>{
+        mouseX=-1000;
+        mouseY=-1000;
+    });
+
+    canvas.addEventListener("click",event=>{
+        const x=event.clientX;
+        const y=event.clientY;
+
+        if(W>=760) {
+            const navX=30;
+            const navTop=112;
+
+            /* Navigation */
+            for(let i=0;i<NAV.length;i++) {
+                const navY=navTop+i*44;
+
+                if(
+                    x>=navX&&
+                    x<=navX+160&&
+                    y>=navY-25&&
+                    y<=navY+18
+            ) {
+                changePage(i);
+                return;
+            }
+        }
+    }
+
+    /* Mobile navigation */
+    if(W<760&&x<160&&y<80) {
+        changePage((currentPage+1)%NAV.length);
+    }
+});
+
+/* ========== ChangePage:) ========== */
+function changePage(page) {
+    /* Check */
+    if(page===currentPage) return;
+
+    /* Page */
+    previousPage=currentPage;
+    currentPage=page;
+
+    /* Scroll */
+    targetScroll=0;
+    scroll=0;
+
+    /* Transition */
+    transition=0;
+}
+
+/* ========== Scroll:) ========== */
+window.addEventListener("wheel",event=>{
+    if(currentPage===2) {
+        targetScroll+=event.deltaY;
+        targetScroll=clamp(targetScroll,0,260);
+    }
+},{
+    passive:true
+});
+
+/* ========== Touch:) ========== */
+let touchStartY=0;
+
+/* Start */
+canvas.addEventListener("touchstart",event=>{
+    if(event.touches.length!==1) return;
+    touchStartY=event.touches[0].clientY;
+},{
+    passive:true
+});
+
+/* End */
+canvas.addEventListener("touchend",event=>{
+    const endY=event.changedTouches[0].clientY;
+    const delta=touchStartY-endY;
+
+    if(Math.abs(delta)>60) {
+        if(delta>0) {
+            changePage((currentPage+1)%NAV.length);
+        } else {
+            changePage((currentPage-1+NAV.length)%NAV.length);
+        }
+    }
+});
+
+/* ========== Keyboard:) ========== */
+window.addEventListener("keydown",event=>{
+    /* Next */
+    if(event.key==="ArrowRight"||event.key==="ArrowDown") {
+        changePage((currentPage+1)%NAV.length);
+    }
+
+    /* Previous */
+    if(event.key==="ArrowLeft"||event.key==="ArrowUp") {
+        changePage((currentPage-1+NAV.length)%NAV.length);
+    }
+
+    /* Number */
+    if(event.key>="1"&&event.key<="5") {
+        const index=Number(event.key)-1;
+        changePage(index);
+    }
+});
+
+/* ========== Render:) ========== */
+let startTime=performance.now();
+
+function render(now) {
+    const time=now-startTime;
+
+    /* Smooth scrolling */
+    scroll=lerp(scroll,targetScroll,0.12);
+
+    /* Transition */
+    transition=Math.min(1,transition+0.055);
+    const transitionEase=ease(transition);
+
+    /* Background */
+    drawBackground(time);
+
+    ctx.save();
+    ctx.globalAlpha=transitionEase;
+
+    /* Header */
+    drawHeader();
+
+    /* Navigation */
+    drawNavigation();
+
+    /* Page */
+    drawPage(time);
+
+    /* Footer */
+    drawFooter();
+
+    ctx.restore();
+
+    /* Entrance line */
+    if(transition<1) {
+        ctx.fillStyle=COLOURS.accent;
+        ctx.fillRect(0,H*(1-transition),W,2);
+    }
+
+    requestAnimationFrame(render);
+}
+
+requestAnimationFrame(render);
+
+/* ========== Cursor:) ========== */
+canvas.addEventListener("mousemove",()=>{
+    const interactive=W>=760&&mouseX<210&&mouseY>80&&mouseY<350;
+    canvas.style.cursor=interactive?"pointer":"default";
+});
+</script>
+</body>
+</html>
