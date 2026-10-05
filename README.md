@@ -1,7 +1,33 @@
 # tagless
 Hackclub Tagless!
 
-I would like to make a personal website!<br>
-First time to write html tagless.. it is way more complicated than I tought.<br>
-Altought I wrote this with the help of AI.(I mean tutor and example, not generate whole code)<br>
-But.... I think I did it. Learned how to write tagless!!!
+# Tagless
+
+A personal website I made for the Hack Club Tagless challenge.
+
+The main idea is to build the website without using normal HTML elements for the UI. Instead, I use JavaScript and `<canvas>` to draw the text, layout and interactive parts.
+
+## Features
+
+* Personal portfolio
+* Responsive layout
+* Canvas-based UI
+* Mouse and touch interaction
+
+## Built With
+
+* HTML
+* CSS
+* JavaScript
+* Canvas
+
+## What I Learned
+
+This project helped me learn more about Canvas, coordinates, responsive layouts and handling interactions manually.
+
+It was also interesting to see how different building a website feels when you can't just use normal HTML elements.
+
+## Run
+
+No dependencies required. Just open `index.html` in a browser.
+
